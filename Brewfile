@@ -1,0 +1,1 @@
+brew "afl-fuzz"

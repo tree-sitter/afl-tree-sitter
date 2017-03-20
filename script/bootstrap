@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+git submodule sync --recursive && git submodule update --init --recursive --force
+
+# Setup a 1 GB RAM Disk
+# diskutil erasevolume HFS+ 'RAM Disk' `hdiutil attach -nomount ram://2048000`
+
+# Disable crash reporting
+# launchctl unload -w /System/Library/LaunchAgents/com.apple.ReportCrash.plist
+# sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.ReportCrash.Root.plist
+
+# Build the tree-sitter runtime
+cd vendor/tree-sitter
+script/configure
+make runtime
+cd -
