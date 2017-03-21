@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+# Setup a 1 GB RAM Disk
+diskutil erasevolume HFS+ 'RAM Disk' `hdiutil attach -nomount ram://2048000`
+# You can eject like so:
+# diskutil unmount 'RAM Disk'
+
+# Link the tree-sitter afl test harness and copy over inputs.
+ln -s $(pwd)/afl "/Volumes/RAM Disk/afl"
+cp -r $(pwd)/afl_in/ "/Volumes/RAM Disk/afl_in/"

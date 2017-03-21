@@ -4,19 +4,11 @@ set -e
 
 git submodule sync --recursive && git submodule update --init --recursive --force
 
-# Build the tree-sitter runtime
-cd vendor/tree-sitter
-script/configure
-make runtime
-cd -
+brew tap homebrew/bundle
+brew bundle
+
+make
 
 # Disable crash reporting
 # launchctl unload -w /System/Library/LaunchAgents/com.apple.ReportCrash.plist
 # sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.ReportCrash.Root.plist
-
-# Setup a 1 GB RAM Disk
-# diskutil erasevolume HFS+ 'RAM Disk' `hdiutil attach -nomount ram://2048000`
-
-# touch afl
-# ln -s $(pwd)/afl "/Volumes/RAM Disk/afl"
-# cp $(pwd)/afl_in/test.js "/Volumes/RAM Disk/afl_in/test.js"
