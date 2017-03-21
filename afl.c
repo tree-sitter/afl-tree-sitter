@@ -8,13 +8,22 @@
 
 TSLanguage *tree_sitter_javascript();
 
-int parse_file_contents(char* file_contents) {
-  printf("%s\n", file_contents);
+void test_log(void *payload, TSLogType type, const char *string) {
+  puts(string);
+}
 
+TSLogger logger = {
+  .log = test_log
+};
+
+int parse_file_contents(const char* file_contents) {
+  printf("%s", file_contents);
+  printf("\n----\n");
   TSDocument *document = ts_document_new();
   ts_document_set_language(document, tree_sitter_javascript());
   // ts_document_set_input_string(document, "console.log('hi')");
   ts_document_set_input_string(document, file_contents);
+  // ts_document_set_logger(document, logger);
   ts_document_parse(document);
 
   TSNode root_node = ts_document_root_node(document);
@@ -36,7 +45,7 @@ int parse_file(const char* filename) {
   }
 
   file_size = filestatus.st_size;
-  file_contents = (char*)malloc(filestatus.st_size);
+  file_contents = (char*)malloc(file_size + 1);
   if ( file_contents == NULL) {
     fprintf(stderr, "Memory error: unable to allocate %d bytes\n", file_size);
     return 1;
@@ -50,20 +59,26 @@ int parse_file(const char* filename) {
     return 1;
   }
   if ( fread(file_contents, file_size, 1, fp) != 1 ) {
-    fprintf(stderr, "Unable t read content of %s\n", filename);
+    fprintf(stderr, "Unable to read content of %s\n", filename);
     fclose(fp);
     free(file_contents);
     return 1;
   }
+  // Make this a NULL terminated string.
+  file_contents[file_size] = 0;
   fclose(fp);
 
-  parse_file_contents(file_contents);
+  if ( parse_file_contents(file_contents) != 0) {
+    fprintf(stderr, "Unable to parse %s\n", filename);
+    free(file_contents);
+    return 1;
+  }
 
   free(file_contents);
   return 0;
 }
 
-int parse_files_in_directory(char* test_dir) {
+int parse_files_in_directory(const char* test_dir) {
   DIR *d;
   struct dirent *dir;
 
@@ -95,7 +110,6 @@ int parse_files_in_directory(char* test_dir) {
 int main(int argc, char const *argv[]) {
   if (argc == 2) {
     printf("tree-sitter-javascript language version: %d\n", ts_language_version(tree_sitter_javascript()));
-    // parse_files_in_directory("afl_in");
     return parse_file(argv[1]);
   }
   else {
