@@ -1,7 +1,0 @@
-AFL_HARDEN=1 afl-clang -Wall \
- -I vendor/tree-sitter-javascript/src \
- -I vendor/tree-sitter/include \
- -L vendor/tree-sitter/out/Release \
- -l runtime \
- vendor/tree-sitter-javascript/src/scanner.c vendor/tree-sitter-javascript/src/parser.c afl.c \
- -o afl
