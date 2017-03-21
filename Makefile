@@ -5,26 +5,37 @@ UTF8_IDIR=vendor/tree-sitter/externals/utf8proc
 
 IDIR=vendor/tree-sitter/include
 CC=clang
-CFLAGS=-I$(IDIR) -I$(TS_IDIR) -I$(UTF8_IDIR)
-
-ODIR=.
+CFLAGS=-Wall -I$(IDIR) -I$(UTF8_IDIR) -I$(TS_IDIR)
 
 # _DEPS = tree-sitter/runtime.h tree-sitter/parser.h
 # DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
+TS_FILES := $(wildcard $(TS_DIR)/*.c)
+TS_OBJ := $(addprefix obj/tree-sitter/,$(notdir $(TS_FILES:.c=.o)))
 
-_TS_OBJ = document.c error_costs.c language.c lexer.c node.c parser.c stack.c string_input.c tree.c utf16.c
-TS_OBJ = $(patsubst %,$(TS_DIR)/%,$(_TS_OBJ))
+afl: obj/utf8proc/utf8proc.o $(TS_OBJ) obj/tree-sitter-javascript/scanner.o obj/tree-sitter-javascript/parser.o obj/afl.o
+	$(CC) -o $@ $^ $(CFLAGS) -v
 
-_OBJ = $(TS_JAVASCRIPT_DIR)/scanner.c $(TS_JAVASCRIPT_DIR)/parser.c afl.c
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+obj/afl.o: afl.c
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-# $(ODIR)/%.o: %.c $(DEPS)
-# 	$(CC) -c -o $@ $< $(CFLAGS)
+obj/tree-sitter-javascript/scanner.o: $(TS_JAVASCRIPT_DIR)/scanner.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+obj/tree-sitter-javascript/parser.o: $(TS_JAVASCRIPT_DIR)/parser.c
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-afl: $(UTF8_IDIR)/utf8proc.c $(TS_OBJ) $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
+obj/tree-sitter/%.o: $(TS_DIR)/%.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+obj/utf8proc/%.o: $(UTF8_IDIR)/%.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+obj:
+	mkdir -p $@
+	mkdir -p $@/utf8proc
+	mkdir -p $@/tree-sitter
+	mkdir -p $@/tree-sitter-javascript
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~
+	rm -f afl obj/*.o obj/**/*.o
