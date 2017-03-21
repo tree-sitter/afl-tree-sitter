@@ -4,7 +4,7 @@ TS_DIR=$(TS_IDIR)/runtime
 UTF8_IDIR=vendor/tree-sitter/externals/utf8proc
 
 IDIR=vendor/tree-sitter/include
-CC=clang
+CC=afl-clang
 CFLAGS=-Wall -I$(IDIR) -I$(UTF8_IDIR) -I$(TS_IDIR)
 
 # tree-sitter runtime
