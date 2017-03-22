@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+if [[ "$(uname -s)" = "Darwin" ]]; then
+  dictionary=$(brew --cellar afl-fuzz)/2.39b/share/afl/js.dict
+else
+  dictionary=/var/local/afl-2.39b/dictionaries/js.dict
+fi
+
+afl-fuzz -i afl_in -o afl_out -t 1000 -x $dictionary ./afl @@

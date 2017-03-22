@@ -26,6 +26,13 @@ obj/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
+docker-image:
+	docker build -t afl-tree-sitter .
+
+docker-run:
+	docker run -v $(CURDIR):/var/local/afl-tree-sitter -w /var/local/afl-tree-sitter -t afl-tree-sitter make clean && make
+	docker run -v /Volumes/RAM\ Disk/:/var/local/afl-tree-sitter -w /var/local/afl-tree-sitter -i -t afl-tree-sitter fuzz
+
 .PHONY: clean
 
 clean:
