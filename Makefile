@@ -17,6 +17,8 @@ SRC_FILES += $(TS_JAVASCRIPT_DIR)/parser.c
 
 OBJ_FILES = $(addprefix obj/, $(SRC_FILES:.c=.o))
 
+export AFL_HARDEN=1
+
 afl: $(OBJ_FILES) afl.c
 	$(CC) -o $@ $^ $(CFLAGS)
 
