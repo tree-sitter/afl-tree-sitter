@@ -1,1 +1,1 @@
-console.log("hi");
+if (1==1) eval('1');
