@@ -21,7 +21,6 @@ int parse_file_contents(const char* file_contents) {
   printf("\n----\n");
   TSDocument *document = ts_document_new();
   ts_document_set_language(document, tree_sitter_javascript());
-  // ts_document_set_input_string(document, "console.log('hi')");
   ts_document_set_input_string(document, file_contents);
   // ts_document_set_logger(document, logger);
   ts_document_parse(document);
@@ -76,35 +75,6 @@ int parse_file(const char* filename) {
 
   free(file_contents);
   return 0;
-}
-
-int parse_files_in_directory(const char* test_dir) {
-  DIR *d;
-  struct dirent *dir;
-
-  d = opendir(test_dir);
-  if (d) {
-    while ((dir = readdir(d)) != NULL) {
-      if (dir->d_type == DT_REG) {
-        printf("Parsing %s\n", dir->d_name);
-        char *filename = malloc(strlen(test_dir) + strlen(dir->d_name) + 2);
-        if (filename == NULL) {
-          fprintf(stderr, "Unable to malloc filename for %s\n", dir->d_name);
-          return 1;
-        }
-        sprintf(filename, "%s/%s", test_dir, dir->d_name);
-        parse_file(filename);
-        free(filename);
-      }
-
-    }
-    closedir(d);
-    return 0;
-  } else {
-    fprintf(stderr, "Unable to open directory %s\n", test_dir);
-    return 1;
-  }
-
 }
 
 int main(int argc, char const *argv[]) {
