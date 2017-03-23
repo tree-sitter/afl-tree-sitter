@@ -1,11 +1,20 @@
 #!/bin/bash
+#/ Usage: script/fuzz language
+#/
+#/ Fuzz a tree-sitter.
+#/
+#/ Examples:
+#/  script/fuzz ruby
+#/  script/fuzz javascript
 
 set -e
+[ $# -eq 0 ] && set -- --help
 
-if [[ "$(uname -s)" = "Darwin" ]]; then
-  dictionary=$(brew --cellar afl-fuzz)/2.39b/share/afl/js.dict
-else
-  dictionary=/var/local/afl-2.39b/dictionaries/js.dict
+if [[ $1 = -h || $1 = --help ]]; then
+  grep ^#/ <"$0" |cut -c4-
+  exit
 fi
 
-afl-fuzz -i afl_in -o afl_out -t 1000 -x $dictionary ./afl @@
+lang=$1
+
+afl-fuzz -d -i afl_in/$lang -o afl_out/$lang -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
