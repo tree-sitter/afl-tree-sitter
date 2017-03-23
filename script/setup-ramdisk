@@ -1,15 +1,17 @@
 #!/bin/bash
 
-set -e
+RAM_DISK="/Volumes/RAM Disk"
 
 # Setup a 1 GB RAM Disk
-diskutil erasevolume HFS+ 'RAM Disk' `hdiutil attach -nomount ram://2048000`
+if [ ! -d "$RAM_DISK" ]; then
+  diskutil erasevolume HFS+ 'RAM Disk' `hdiutil attach -nomount ram://2048000`
+fi
 # You can eject like so:
 # diskutil unmount 'RAM Disk'
 
 # Link the tree-sitter afl test harness and copy over inputs.
 WD=$(pwd)
-cd /Volumes/RAM\ Disk
+cd "$RAM_DISK"
 mkdir -p .fseventsd && touch .fseventsd/no_log # disable fseventd for this volume.
 for lang in javascript ruby; do
   ln -s $WD/afl-$lang afl-$lang
