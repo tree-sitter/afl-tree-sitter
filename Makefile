@@ -16,26 +16,34 @@ SRC_FILES += $(wildcard $(TS_DIR)/*.c)
 # afl test harness
 SRC_FILES += afl.c
 
-# tree-sitter-javascript parser
+# tree-sitter-go
+TS_GO_C_FILES := $(SRC_FILES)
+TS_GO_C_FILES += vendor/tree-sitter-go/src/parser.c
+TS_GO_OBJ_FILES = $(addprefix obj/, $(TS_GO_C_FILES:.c=.o))
+
+# tree-sitter-javascript
 TS_JAVASCRIPT_C_FILES := $(SRC_FILES)
 TS_JAVASCRIPT_C_FILES += vendor/tree-sitter-javascript/src/parser.c
 TS_JAVASCRIPT_C_FILES += vendor/tree-sitter-javascript/src/scanner.c
 TS_JAVASCRIPT_OBJ_FILES = $(addprefix obj/, $(TS_JAVASCRIPT_C_FILES:.c=.o))
 
-# tree-sitter-ruby parser
+# tree-sitter-ruby
 TS_RUBY_C_FILES := $(SRC_FILES)
 TS_RUBY_C_FILES += vendor/tree-sitter-ruby/src/parser.c
 TS_RUBY_CXX_FILES = vendor/tree-sitter-ruby/src/scanner.cc
 TS_RUBY_OBJ_FILES  = $(addprefix obj/, $(TS_RUBY_C_FILES:.c=.o))
 TS_RUBY_OBJ_FILES += $(addprefix obj/, $(TS_RUBY_CXX_FILES:.cc=.o))
 
-all: afl-ruby afl-javascript
+all: afl-go afl-javascript afl-ruby
 
-afl-ruby: $(TS_RUBY_OBJ_FILES) afl_ruby.c
-	$(CC) -o $@ $^ $(CFLAGS) -lstdc++
+afl-go: $(TS_GO_OBJ_FILES) afl_go.c
+	$(CC) -o $@ $^ $(CFLAGS)
 
 afl-javascript: $(TS_JAVASCRIPT_OBJ_FILES) afl_javascript.c
 	$(CC) -o $@ $^ $(CFLAGS)
+
+afl-ruby: $(TS_RUBY_OBJ_FILES) afl_ruby.c
+	$(CC) -o $@ $^ $(CFLAGS) -lstdc++
 
 obj/%.o: %.c
 	@mkdir -p $(dir $@)
@@ -55,6 +63,7 @@ docker-run:
 .PHONY: all clean
 
 clean:
+	rm -f afl-go
 	rm -f afl-javascript
 	rm -f afl-ruby
 	rm -rf obj
