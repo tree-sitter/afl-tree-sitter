@@ -29,7 +29,7 @@ TS_RUBY_CXX_FILES = vendor/tree-sitter-ruby/src/scanner.cc
 TS_RUBY_OBJ_FILES  = $(addprefix obj/, $(TS_RUBY_C_FILES:.c=.o))
 TS_RUBY_OBJ_FILES += $(addprefix obj/, $(TS_RUBY_CXX_FILES:.cc=.o))
 
-# all: afl-ruby afl-javascript
+all: afl-ruby afl-javascript
 
 afl-ruby: $(TS_RUBY_OBJ_FILES) afl_ruby.c
 	$(CC) -o $@ $^ $(CFLAGS) -lstdc++
@@ -55,6 +55,6 @@ docker-run:
 .PHONY: all clean
 
 clean:
-	rm -f afl
-	rm -f afl-*
+	rm -f afl-javascript
+	rm -f afl-ruby
 	rm -rf obj
