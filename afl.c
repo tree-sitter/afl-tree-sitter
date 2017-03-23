@@ -12,11 +12,25 @@ int parse_file_contents(TSLanguage* language, const char* file_contents) {
   printf("tree-sitter-javascript language version: %d\n", ts_language_version(language));
   printf("%s", file_contents);
   printf("\n----\n");
+
   TSDocument *document = ts_document_new();
   ts_document_set_language(document, language);
   ts_document_set_input_string(document, file_contents);
-  // ts_document_set_logger(document, logger);
+
+  // Debugging graphs are written on stderror, use dot to produce svgs for viewing.
+  // Example:
+  //   alf-ruby test.rb 2> info.dot
+  //   cat info.dot | dot -Tsvg > info.html
+  //
+  // NOTES:
+  //  - For infinite loops you'll have to Ctrl-C and then edit the end of
+  //    info.dot to remove any unfinished parts of the graph.
+  //  - Add svg {width: 100%;} to the info.hml.
   // ts_document_print_debugging_graphs(document, true);
+
+  // Sometimes just debug logging is helpful too.
+  // ts_document_set_logger(document, logger);
+
   ts_document_parse(document);
 
   TSNode root_node = ts_document_root_node(document);
