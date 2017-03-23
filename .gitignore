@@ -1,3 +1,4 @@
 afl
-afl.dSYM
+afl-*
+*.dSYM
 obj

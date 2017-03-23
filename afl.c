@@ -1,12 +1,4 @@
-#include <assert.h>
-#include <string.h>
-#include <stdio.h>
-#include <sys/stat.h>
-#include <dirent.h>
-
-#include "tree_sitter/runtime.h"
-
-TSLanguage *tree_sitter_javascript();
+#include "afl.h"
 
 void test_log(void *payload, TSLogType type, const char *string) {
   puts(string);
@@ -16,13 +8,15 @@ TSLogger logger = {
   .log = test_log
 };
 
-int parse_file_contents(const char* file_contents) {
+int parse_file_contents(TSLanguage* language, const char* file_contents) {
+  printf("tree-sitter-javascript language version: %d\n", ts_language_version(language));
   printf("%s", file_contents);
   printf("\n----\n");
   TSDocument *document = ts_document_new();
-  ts_document_set_language(document, tree_sitter_javascript());
+  ts_document_set_language(document, language);
   ts_document_set_input_string(document, file_contents);
   // ts_document_set_logger(document, logger);
+  // ts_document_print_debugging_graphs(document, true);
   ts_document_parse(document);
 
   TSNode root_node = ts_document_root_node(document);
@@ -32,7 +26,7 @@ int parse_file_contents(const char* file_contents) {
   return 0;
 }
 
-int parse_file(const char* filename) {
+int parse_file(TSLanguage* language, const char* filename) {
   FILE *fp;
   struct stat filestatus;
   int file_size;
@@ -67,7 +61,7 @@ int parse_file(const char* filename) {
   file_contents[file_size] = 0;
   fclose(fp);
 
-  if ( parse_file_contents(file_contents) != 0) {
+  if ( parse_file_contents(language, file_contents) != 0) {
     fprintf(stderr, "Unable to parse %s\n", filename);
     free(file_contents);
     return 1;
@@ -77,10 +71,9 @@ int parse_file(const char* filename) {
   return 0;
 }
 
-int main(int argc, char const *argv[]) {
+int parse(int argc, char const *argv[], TSLanguage* language) {
   if (argc == 2) {
-    printf("tree-sitter-javascript language version: %d\n", ts_language_version(tree_sitter_javascript()));
-    return parse_file(argv[1]);
+    return parse_file(language, argv[1]);
   }
   else {
     fprintf(stderr, "ERROR. Must pass one file path to parse.\nusage: afl FILE\n\n       afl-fuzz -i afl_in -o afl_out ./afl @@\n");
