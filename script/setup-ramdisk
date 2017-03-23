@@ -1,10 +1,22 @@
 #!/bin/bash
 
-RAM_DISK="/Volumes/RAM Disk"
 
 # Setup a 1 GB RAM Disk
-if [ ! -d "$RAM_DISK" ]; then
-  diskutil erasevolume HFS+ 'RAM Disk' `hdiutil attach -nomount ram://2048000`
+if [[ "$(uname -s)" = "Darwin" ]]; then
+
+  RAM_DISK="/Volumes/RAM Disk"
+  if [ ! -d "$RAM_DISK" ]; then
+    diskutil erasevolume HFS+ 'RAM Disk' `hdiutil attach -nomount ram://2048000`
+  fi
+
+else
+
+  RAM_DISK="/mnt/ramdisk"
+  if [ ! -d "$RAM_DISK" ]; then
+    mkdir "$RAM_DISK"
+    mount -t tmpfs -o size=1G tmpfs "$RAM_DISK"
+  fi
+
 fi
 # You can eject like so:
 # diskutil unmount 'RAM Disk'

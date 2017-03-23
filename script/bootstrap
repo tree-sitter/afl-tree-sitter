@@ -4,11 +4,18 @@ set -e
 
 git submodule sync --recursive && git submodule update --init --recursive --force
 
-brew tap homebrew/bundle
-brew bundle
+if [[ "$(uname -s)" = "Darwin" ]]; then
+  brew tap homebrew/bundle
+  brew bundle
+
+  # You might need to disable crash reporting on macOS
+  # launchctl unload -w /System/Library/LaunchAgents/com.apple.ReportCrash.plist
+  # sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.ReportCrash.Root.plist
+else
+  # On nix systems, grab afl and build it.
+  curl http://lcamtuf.coredump.cx/afl/releases/afl-2.39b.tgz | \
+    tar -C /var/local/ -xzf - && cd /var/local/afl-2.39b && \
+    make && make install
+fi
 
 make
-
-# Disable crash reporting
-# launchctl unload -w /System/Library/LaunchAgents/com.apple.ReportCrash.plist
-# sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.ReportCrash.Root.plist
