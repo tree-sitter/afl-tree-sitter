@@ -3,9 +3,6 @@
 #/
 #/ Fuzz a tree-sitter. Fuzzing runs in a screen session.
 #/
-#/     -o --out
-#/         Specify afl's output directory. Default: afl_out.
-#/
 #/     -p --parallel
 #/         Run fuzzing in parallel.
 #/
@@ -21,7 +18,6 @@ set -e
 
 parallel=false
 lang=javascript
-out_dir=afl_out
 n=1
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -32,10 +28,6 @@ while [ $# -gt 0 ]; do
     -p|--parallel)
       parallel=true
       shift
-      ;;
-    -o|--out)
-      out_dir=$2
-      shift 2
       ;;
     -n)
       n=$2
@@ -48,15 +40,20 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-mkdir -p "$out_dir/$lang"
 
 if $parallel; then
+  out_dir="afl_sync/$lang"
+  mkdir -p "$out_dir"
+
   screen -AdmS "afl-$lang" -t tab0
-  screen -S "afl-$lang" -X screen -t "afl-$lang-primary" afl-fuzz -M $lang-primary -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
+  screen -S "afl-$lang" -X screen -t "afl-$lang-primary" afl-fuzz -M $lang-primary -i "afl_in/$lang" -o "$out_dir" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
   for i in $(seq 1 $n); do
-    screen -S "afl-$lang" -X screen -t "afl-$lang-secondary$i" afl-fuzz -S $lang-secondary$i -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
+    screen -S "afl-$lang" -X screen -t "afl-$lang-secondary$i" afl-fuzz -S $lang-secondary$i -i "afl_in/$lang" -o "$out_dir" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
   done
   screen -r
 else
-  afl-fuzz -d -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
+  out_dir="afl_out/$lang"
+  mkdir -p "$out_dir"
+
+  afl-fuzz -d -i "afl_in/$lang" -o "$out_dir" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
 fi
