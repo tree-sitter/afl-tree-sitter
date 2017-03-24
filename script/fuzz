@@ -9,6 +9,9 @@
 #/     -p --parallel
 #/         Run fuzzing in parallel.
 #/
+#/     -n
+#/         Number of secondary fuzzing processes to run. Default = 1.
+#/
 #/ Examples:
 #/  script/fuzz ruby
 #/  script/fuzz javascript
@@ -19,6 +22,7 @@ set -e
 parallel=false
 lang=javascript
 out_dir=afl_out
+n=1
 while [ $# -gt 0 ]; do
   case "$1" in
     -h|--help)
@@ -33,6 +37,10 @@ while [ $# -gt 0 ]; do
       out_dir=$2
       shift 2
       ;;
+    -n)
+      n=$2
+      shift 2
+      ;;
     *)
       lang=$1
       shift
@@ -44,8 +52,10 @@ mkdir -p "$out_dir/$lang"
 
 if $parallel; then
   screen -AdmS "afl-$lang" -t tab0
-  screen -S "afl-$lang" -X screen -t "afl-$lang-primary" afl-fuzz -M primary -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
-  screen -S "afl-$lang" -X screen -t "afl-$lang-secondary1" afl-fuzz -S secondary1 -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
+  screen -S "afl-$lang" -X screen -t "afl-$lang-primary" afl-fuzz -M $lang-primary -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
+  for i in $(seq 1 $n); do
+    screen -S "afl-$lang" -X screen -t "afl-$lang-secondary$i" afl-fuzz -S $lang-secondary$i -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
+  done
   screen -r
 else
   afl-fuzz -d -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
