@@ -11,23 +11,28 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
   fi
 
 else
-
-  RAM_DISK="/mnt/ramdisk"
-  if [ ! -d "$RAM_DISK" ]; then
-    mkdir "$RAM_DISK"
-    mount -t tmpfs -o size=1G tmpfs "$RAM_DISK"
-  fi
-
+  echo "WARNING: Manual setup of RAM_DISK required on *nix systems."
+  # RAM_DISK="/mnt/ramdisk"
+  # if [ ! -d "$RAM_DISK" ]; then
+  #   sudo su
+  #   mkdir "$RAM_DISK"
+  #   mount -t tmpfs -o size=1G tmpfs "$RAM_DISK"
+  #   chown $(whoami): "$RAM_DISK"
+  # fi
 fi
 
 # Link the tree-sitter afl test harness and copy over inputs.
 WD=$(pwd)
 cd "$RAM_DISK"
-mkdir -p .fseventsd && touch .fseventsd/no_log # disable fseventd for this volume.
+
+if [[ "$(uname -s)" = "Darwin" ]]; then
+  # disable fseventd for this volume on macOS
+  mkdir -p .fseventsd && touch .fseventsd/no_log
+fi
+
 for lang in go javascript ruby; do
-  ln -s $WD/afl-$lang afl-$lang
-  mkdir -p afl_out/$lang
+  ln -s $WD/afl-$lang
 done
-ln -s $WD/script/fuzz fuzz
+ln -s $WD/dictionaries/
+ln -s $WD/script/fuzz
 cp -r $WD/afl_in/ afl_in/
-cp -r $WD/dictionaries/ dictionaries/
