@@ -1,7 +1,13 @@
 #!/bin/bash
 #/ Usage: script/fuzz language
 #/
-#/ Fuzz a tree-sitter.
+#/ Fuzz a tree-sitter. Fuzzing runs in a screen session.
+#/
+#/     -o --out
+#/         Specify afl's output directory. Default: afl_out.
+#/
+#/     -p --parallel
+#/         Run fuzzing in parallel.
 #/
 #/ Examples:
 #/  script/fuzz ruby
@@ -10,11 +16,37 @@
 set -e
 [ $# -eq 0 ] && set -- --help
 
-if [[ $1 = -h || $1 = --help ]]; then
-  grep ^#/ <"$0" |cut -c4-
-  exit
+parallel=false
+lang=javascript
+out_dir=afl_out
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      grep ^#/ <"$0" |cut -c4-
+      exit
+      ;;
+    -p|--parallel)
+      parallel=true
+      shift
+      ;;
+    -o|--out)
+      out_dir=$2
+      shift 2
+      ;;
+    *)
+      lang=$1
+      shift
+      ;;
+  esac
+done
+
+mkdir -p "$out_dir/$lang"
+
+if $parallel; then
+  screen -AdmS "afl-$lang" -t tab0
+  screen -S "afl-$lang" -X screen -t "afl-$lang-primary" afl-fuzz -M primary -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
+  screen -S "afl-$lang" -X screen -t "afl-$lang-secondary1" afl-fuzz -S secondary1 -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
+  screen -r
+else
+  afl-fuzz -d -i "afl_in/$lang" -o "$out_dir/$lang" -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
 fi
-
-lang=$1
-
-afl-fuzz -d -i afl_in/$lang -o afl_out/$lang -t 1000 -x dictionaries/$lang.dict ./afl-$lang @@
