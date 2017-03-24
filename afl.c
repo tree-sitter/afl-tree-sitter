@@ -9,7 +9,7 @@ TSLogger logger = {
 };
 
 int parse_file_contents(TSLanguage* language, const char* file_contents) {
-  printf("tree-sitter-javascript language version: %d\n", ts_language_version(language));
+  printf("language version: %d\n", ts_language_version(language));
   printf("%s", file_contents);
   printf("\n----\n");
 
