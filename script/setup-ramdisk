@@ -12,7 +12,7 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
 
 else
   echo "WARNING: Manual setup of RAM_DISK required on *nix systems."
-  RAM_DISK=ramdisk
+  RAM_DISK="/data/fuzzing-ramdisk"
 
   # RAM_DISK="/mnt/ramdisk"
   # if [ ! -d "$RAM_DISK" ]; then
