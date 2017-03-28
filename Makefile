@@ -58,7 +58,7 @@ docker-image:
 
 docker-run:
 	docker run -v $(CURDIR):/var/local/afl-tree-sitter -w /var/local/afl-tree-sitter -t afl-tree-sitter make clean && make
-	docker run -v /Volumes/RAM\ Disk/:/var/local/afl-tree-sitter -w /var/local/afl-tree-sitter -i -t afl-tree-sitter fuzz
+	docker run -v /Volumes/ramdisk/:/var/local/afl-tree-sitter -w /var/local/afl-tree-sitter -i -t afl-tree-sitter fuzz
 
 .PHONY: all clean
 

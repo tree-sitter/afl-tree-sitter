@@ -12,7 +12,8 @@ This project focuses on fuzzing the tree-sitter runtime and associated parsers f
 ``` sh
 script/bootstrap
 script/setup-ramdisk # Optional, but recommended b/c afl is hard on SSDs.
-cd /Volumes/RAM\ Disk/ && fuzz javascript
+cd /Volumes/ramdisk/
+./fuzz javascript
 ```
 
 ### Bugs found so far
@@ -33,10 +34,6 @@ An incomplete list of interesting bugs found using `afl-fuzz`.
 You can fuzz in parallel to take full advantage of multi-core systems. See `script/fuzz` for specific options passed to `afl-fuzz` and for language setup.
 
 ``` sh
-# master
-afl-fuzz -i afl_in -o afl_out -M master -t 1000 ./afl @@
-
-# secondaries
-afl-fuzz -i afl_in -o afl_out -S secondary1 -t 1000 ./afl @@
-afl-fuzz -i afl_in -o afl_out -S secondary2 -t 1000 ./afl @@
+# Fuzz in parallel with 1 primary and 3 secondary fuzzers.
+./fuzz -p -n 3 javascript
 ```
